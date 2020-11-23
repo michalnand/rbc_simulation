@@ -47,14 +47,14 @@ class Model(torch.nn.Module):
             ResidualBlock(hidden_count),
             ResidualBlock(hidden_count),
             ResidualBlock(hidden_count),
-
+  
             Flatten(),
 
             nn.Linear(fc_size, 64),
             nn.ReLU(),
             nn.Linear(64, outputs_count)
         ]
-        
+
         for i in range(len(self.layers)):
             if hasattr(self.layers[i], "weight"):
                 torch.nn.init.xavier_uniform_(self.layers[i].weight)
@@ -87,7 +87,9 @@ if __name__ == "__main__":
     model = Model(input_shape, 3)
 
     x = torch.randn((batch_size, ) + input_shape)
-    y = model.forward(x)
+                    
 
+    y = model.forward(x)
+    
     print("y shape = ", y.shape)
     print(y)
