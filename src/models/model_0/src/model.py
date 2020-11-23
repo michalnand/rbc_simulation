@@ -36,7 +36,7 @@ class Model(torch.nn.Module):
         fc_size = hidden_count*input_shape[1]*input_shape[2]
         
         self.layers = [     
-            nn.Conv2d(input_shape[0], hidden_count),
+            nn.Conv2d(input_shape[0], hidden_count, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
 
             ResidualBlock(hidden_count),
@@ -50,7 +50,7 @@ class Model(torch.nn.Module):
 
             Flatten(),
 
-            nn.Conv2d(fc_size, 64),
+            nn.Linear(fc_size, 64),
             nn.ReLU(),
             nn.Linear(64, outputs_count)
         ]
