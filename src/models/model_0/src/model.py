@@ -54,9 +54,11 @@ class Model(torch.nn.Module):
             nn.ReLU(),
             nn.Linear(64, outputs_count)
         ]
-
-        torch.nn.init.xavier_uniform_(self.layers[0].weight)
         
+        for i in range(len(self.layers)):
+            if hasattr(self.layers[i], "weight"):
+                torch.nn.init.xavier_uniform_(self.layers[i].weight)
+
 
         self.model = nn.Sequential(*self.layers)
         self.model.to(self.device)
@@ -77,3 +79,15 @@ class Model(torch.nn.Module):
         self.model.load_state_dict(torch.load(path + "trained/model.pt", map_location = self.device))
         self.model.eval()  
     
+
+if __name__ == "__main__":
+    input_shape = (3, 38, 50)
+    batch_size  = 16
+
+    model = Model(input_shape, 3)
+
+    x = torch.randn((batch_size, ) + input_shape)
+    y = model.forward(x)
+
+    print("y shape = ", y.shape)
+    print(y)
