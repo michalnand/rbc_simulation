@@ -14,10 +14,8 @@ class DatsLoad:
             self.data.append(data_)
 
         self.data      = numpy.array(self.data, dtype=float)
-        self.data      = numpy.rollaxis(self.data, 1, 0)
-        self.data      = numpy.rollaxis(self.data, 2, 0)
+        self.data      = numpy.rollaxis(self.data, 2, 1)
       
-
 
 if __name__ == "__main__":
     path = "/Users/michal/dataset/cells_dataset/sim26/"
@@ -32,4 +30,4 @@ if __name__ == "__main__":
     files_list.append(path + "rbc6_data_sim26.dat")
 
 
-    dats = DatsLoad(files_list)
+    dats = DatsLoad(files_list, cols = [1, 2, 3]) 

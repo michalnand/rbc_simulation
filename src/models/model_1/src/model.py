@@ -6,6 +6,25 @@ class Flatten(nn.Module):
     def forward(self, input):
         return input.view(input.size(0), -1)
 
+class ResidualBlock(torch.nn.Module):
+    def __init__(self, channels, weight_init_gain = 1.0):
+        super(ResidualBlock, self).__init__()
+
+        self.conv0  = nn.Conv1d(channels, channels, kernel_size=3, stride=1, padding=1)
+        self.act0   = nn.ReLU()
+        self.conv1  = nn.Conv1d(channels, channels, kernel_size=3, stride=1, padding=1)
+        self.act1   = nn.ReLU()
+            
+        torch.nn.init.xavier_uniform_(self.conv0.weight, gain=weight_init_gain)
+        torch.nn.init.xavier_uniform_(self.conv1.weight, gain=weight_init_gain)
+
+    def forward(self, x):
+        y  = self.conv0(x)
+        y  = self.act0(y)
+        y  = self.conv1(y)
+        y  = self.act1(y + x)
+        
+        return y
 
 
 class Create(torch.nn.Module):
@@ -19,21 +38,33 @@ class Create(torch.nn.Module):
         self.layers = [     
             nn.Conv1d(input_shape[0], 32, kernel_size=3, stride=2, padding=1),
             nn.ReLU(),
-           
+            ResidualBlock(32),
+            ResidualBlock(32),
+
             nn.Conv1d(32, 64, kernel_size=3, stride=2, padding=1),
             nn.ReLU(),
+            ResidualBlock(64),
+            ResidualBlock(64),
 
             nn.Conv1d(64, 64, kernel_size=3, stride=2, padding=1),
             nn.ReLU(),
+            ResidualBlock(64),
+            ResidualBlock(64),
 
             nn.Conv1d(64, 128, kernel_size=3, stride=2, padding=1),
             nn.ReLU(),
-    
-            nn.Conv1d(128, 128, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
+            ResidualBlock(128),
+            ResidualBlock(128),
 
             nn.Conv1d(128, 128, kernel_size=3, stride=2, padding=1),
             nn.ReLU(),
+            ResidualBlock(128),
+            ResidualBlock(128),
+
+            nn.Conv1d(128, 128, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(),
+            ResidualBlock(128),
+            ResidualBlock(128),
 
             Flatten(),
 
@@ -69,7 +100,7 @@ if __name__ == "__main__":
     input_shape = (3, 1024)
     batch_size  = 16
 
-    model = Model(input_shape, 3)
+    model = Create(input_shape, (3, ))
 
     x = torch.randn((batch_size, ) + input_shape)
                     
