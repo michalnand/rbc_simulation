@@ -54,6 +54,8 @@ class CellsDataset:
        
         print("\n\n\n\n")
         print("dataset summary : \n")
+        print("training_dats shape    = ", self.training_dats.data.shape)
+        print("testing_dats shape    = ", self.testing_dats.data.shape)
         print("training_count  = ", self.get_training_count())
         print("testing_count   = ", self.get_testing_count())
         print("channels_count  = ", self.channels)
@@ -91,16 +93,16 @@ class CellsDataset:
             tmp = x[cell_idx][time_idx:time_idx + self.width]
             tmp = tmp.transpose()
 
-
+            class_id = y[cell_idx]
             result_x[i]  = torch.from_numpy(tmp).float()
-            result_y[i]  = y[cell_idx]
+            result_y[i][class_id]  = 1.0
 
         if agumentation:
             result_x = self._augmentation(result_x)
 
         return result_x, result_y
 
-    def _augmentation(self, x, gaussian_noise_level = 0.001, offset_noise_level = 1.0):
+    def _augmentation(self, x, gaussian_noise_level = 0.001, offset_noise_level = 2.0):
         noise        = gaussian_noise_level*torch.randn(x.shape)
         offset_noise = offset_noise_level*torch.randn((x.shape[0], x.shape[1])).unsqueeze(2).repeat(1, 1, x.shape[2])
         

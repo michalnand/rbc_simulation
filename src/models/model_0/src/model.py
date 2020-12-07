@@ -14,7 +14,7 @@ class Create(torch.nn.Module):
 
         self.device = "cpu"
 
-        fc_width = input_shape[1]//(2**6)
+        fc_width = input_shape[1]//(2**4)
         
         self.layers = [     
             nn.Conv1d(input_shape[0], 32, kernel_size=3, stride=2, padding=1),
@@ -29,14 +29,8 @@ class Create(torch.nn.Module):
             nn.Conv1d(64, 128, kernel_size=3, stride=2, padding=1),
             nn.ReLU(),
     
-            nn.Conv1d(128, 128, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
-
-            nn.Conv1d(128, 128, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
-
+          
             Flatten(),
-
             nn.Linear(128*fc_width, outputs_count[0])
         ]
 

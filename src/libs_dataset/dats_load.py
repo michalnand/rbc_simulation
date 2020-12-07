@@ -4,6 +4,8 @@ class DatsLoad:
     def __init__(self, files_list, cols):
         self.data      = []
 
+        shortest = 10**9
+
         for f in files_list:
             print("loading ", f)
             data_   = numpy.genfromtxt(f, skip_header=1,  unpack = True)
@@ -11,7 +13,18 @@ class DatsLoad:
 
             data_   = data_[cols]
 
+            if (data_.shape[1] < shortest):
+                shortest = data_.shape[1]
+
+            print("shape = ", data_.shape)
+
             self.data.append(data_)
+
+        print("shortest_length = ", shortest, "\n\n")
+
+        for i in range(len(self.data)):
+            self.data[i] = self.data[i][0:][0:shortest]
+
 
         self.data      = numpy.array(self.data, dtype=float)
         self.data      = numpy.rollaxis(self.data, 2, 1)
