@@ -1,5 +1,6 @@
 import numpy
 import torch
+import time
 
 from .loss import *
 from .confussion_matrix import *
@@ -17,13 +18,21 @@ class Train:
         self.loss             = loss
 
     def step_epochs(self, epoch_count, log_path = "./"):
-        accuracy_best   = -1.0
+        accuracy_best       = -1.0
+        epoch_time_filtered = -1.0
 
         f_training_log  = open(log_path + "/result/training.log","w+")
 
         for epoch in range(epoch_count):
             learning_rate = self.learning_rates[epoch_count%len(self.learning_rates)]
-            training_confussion_matrix, testing_confussion_matrix, training_loss, testing_loss = self.step_epoch(learning_rate, epoch, epoch_count)
+            training_confussion_matrix, testing_confussion_matrix, training_loss, testing_loss, epoch_time = self.step_epoch(learning_rate, epoch, epoch_count)
+
+            if epoch_time_filtered < 0.0:
+                epoch_time_filtered = epoch_time
+            else:
+                epoch_time_filtered = 0.9*epoch_time_filtered + 0.1*epoch_time
+
+            eta_time    = (epoch_count - epoch)*(epoch_time_filtered/3600.0)
 
             training_accuracy   = training_confussion_matrix.accuracy
             testing_accuracy    = testing_confussion_matrix.accuracy
@@ -42,10 +51,12 @@ class Train:
             log_str+= str(testing_loss_mean) + " "
             log_str+= str(training_loss_std) + " "
             log_str+= str(testing_loss_std) + " "
+            log_str+= str(round(eta_time, 2)) + " "
             log_str+= "\n"
 
             print(log_str)
             f_training_log.write(log_str)
+            f_training_log.flush()
 
             if testing_accuracy > accuracy_best:
                 self.model.save(log_path + "/trained/")
@@ -71,6 +82,8 @@ class Train:
     
 
     def step_epoch(self, learning_rate, epoch, epoch_count):
+
+        time_start = time.time()
 
         if hasattr(self.model, 'epoch_start'):
             self.model.epoch_start(epoch, epoch_count)
@@ -122,5 +135,9 @@ class Train:
 
         testing_confussion_matrix.compute()
 
-        return training_confussion_matrix, testing_confussion_matrix, training_loss, testing_loss
+        time_stop = time.time()
+
+        epoch_time = time_stop - time_start
+
+        return training_confussion_matrix, testing_confussion_matrix, training_loss, testing_loss, epoch_time
   
