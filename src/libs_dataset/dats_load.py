@@ -20,15 +20,38 @@ class DatsLoad:
 
             self.data.append(data_)
 
-        print("shortest_length = ", shortest, "\n\n")
-
         for i in range(len(self.data)):
             self.data[i] = self.data[i][0:][0:shortest]
 
 
         self.data      = numpy.array(self.data, dtype=float)
         self.data      = numpy.rollaxis(self.data, 2, 1)
-      
+
+        print("shortest_length = ", shortest)
+        print("data_shape      = ", self.data.shape)
+        print("\n\n")
+
+        #data normalisation
+        cells_count = self.data.shape[0]
+        time_steps  = self.data.shape[1]
+        axis_count  = self.data.shape[2]
+
+        self.data      = numpy.reshape(self.data, (cells_count*time_steps, axis_count))
+
+        mean = self.data.mean(axis=0)
+        std  = self.data.std(axis=0)
+
+        self.data = (self.data - mean)/std
+        
+        '''
+        print("shape    = ", self.data.shape)
+        print("min      = ", self.data.min (axis=0))
+        print("max      = ", self.data.max(axis=0))
+        print("mean     = ", self.data.mean(axis=0))
+        print("std      = ", self.data.std(axis=0))
+        '''
+
+        self.data      = numpy.reshape(self.data, (cells_count, time_steps, axis_count))
 
 if __name__ == "__main__":
     path = "/Users/michal/dataset/cells_dataset/sim26/"

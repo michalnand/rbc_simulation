@@ -102,11 +102,12 @@ class CellsDataset:
 
         return result_x, result_y
 
-    def _augmentation(self, x, gaussian_noise_level = 0.001, offset_noise_level = 2.0):
+    def _augmentation(self, x, gaussian_noise_level = 0.001, offset_noise_level = 1.0):
         noise        = gaussian_noise_level*torch.randn(x.shape)
-        offset_noise = offset_noise_level*torch.randn((x.shape[0], x.shape[1])).unsqueeze(2).repeat(1, 1, x.shape[2])
         
-        x            = x + noise + offset_noise_level
+        offset_noise = 2.0*torch.rand((x.shape[0], x.shape[1])).unsqueeze(2).repeat(1, 1, x.shape[2]) - 1.0
+ 
+        x            = x + noise + offset_noise_level*offset_noise
         return x
 
 
