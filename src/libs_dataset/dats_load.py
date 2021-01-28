@@ -1,10 +1,10 @@
 import numpy
 
+
 class DatsLoad:
     def __init__(self, files_list, cols):
-        self.data      = []
-
-        shortest = 10**9
+        data        = []
+        shortest    = 10**9
 
         for f in files_list:
             print("loading ", f)
@@ -18,11 +18,13 @@ class DatsLoad:
 
             print("shape = ", data_.shape)
 
-            self.data.append(data_)
+            data.append(data_)
 
-        for i in range(len(self.data)):
-            self.data[i] = self.data[i][0:][0:shortest]
+        self.data = numpy.zeros((len(data), len(cols), shortest))
 
+        for i in range(len(data)):
+            for j in range(len(cols)):
+                self.data[i][j] = data[i][j][0:shortest]
 
         self.data      = numpy.array(self.data, dtype=float)
         self.data      = numpy.rollaxis(self.data, 2, 1)

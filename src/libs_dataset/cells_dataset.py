@@ -1,6 +1,8 @@
 import numpy
 import torch
-from .dats_load import *
+#from .dats_load import *
+
+import dats_load
 
 class CellsDataset:
     
@@ -31,7 +33,7 @@ class CellsDataset:
     note : real dataset is too big to hold in RAM (I have only 32G)
     that's why dataset is created runtime
     '''
-    def __init__(self, training_files, training_labels, testing_files, testing_labels, classes_count, window_size = 1024, cols = [1, 2, 3], augmentations_count = 32):
+    def __init__(self, training_files, training_labels, testing_files, testing_labels, classes_count, window_size = 1024, cols = [1, 2, 3, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], augmentations_count = 32):
 
         self.width         = window_size
         self.channels      = len(cols)
@@ -40,12 +42,12 @@ class CellsDataset:
         self.classes_count = classes_count
         self.output_shape  = (self.classes_count, )
 
-        self.augmentations_count = augmentations_count
+        self.augmentations_count    = augmentations_count
         
-        self.training_dats      = DatsLoad(training_files, cols = cols)
+        self.training_dats      = dats_load.DatsLoad(training_files, cols = cols)
         self.training_labels    = training_labels
 
-        self.testing_dats       = DatsLoad(testing_files, cols = cols)
+        self.testing_dats       = dats_load.DatsLoad(testing_files, cols = cols)
         self.testing_labels     = testing_labels
 
         self.training_count = (1 + self.augmentations_count)*self.training_dats.data.shape[0]*self.training_dats.data.shape[1]
@@ -104,11 +106,54 @@ class CellsDataset:
 
     def _augmentation(self, x, gaussian_noise_level = 0.001, offset_noise_level = 1.0):
         noise        = gaussian_noise_level*torch.randn(x.shape)
-        
         offset_noise = 2.0*torch.rand((x.shape[0], x.shape[1])).unsqueeze(2).repeat(1, 1, x.shape[2]) - 1.0
+
+        x_result     = x + noise + offset_noise_level*offset_noise
+
+        return x_result
+
+    def _augmentation_rotation(self, x, y, z, rotation_max = 10.0):
+        input = numpy.array([x, y, z])
  
-        x            = x + noise + offset_noise_level*offset_noise
-        return x
+        yaw   = self._rnd(-rotation_max, rotation_max)*numpy.pi/180.0
+        pitch = self._rnd(-rotation_max, rotation_max)*numpy.pi/180.0
+        roll  = self._rnd(-rotation_max, rotation_max)*numpy.pi/180.0
+
+        r = torch.from_numpy(self._rotation_matrix(yaw, pitch, roll))
+
+        result = torch.matmul(r, input)
+
+        return result[0], result[1], result[2]
+
+    def _rotation_matrix(self, yaw, pitch, roll):
+        rx = numpy.zeros((3, 3))
+        rx[0][0] = 1.0
+        rx[1][1] = numpy.cos(yaw)
+        rx[1][2] = -numpy.sin(yaw)
+        rx[2][1] =  numpy.sin(yaw)
+        rx[2][2] =  numpy.cos(yaw)
+
+
+        ry = numpy.zeros((3, 3))
+        ry[0][0] = numpy.cos(pitch)
+        ry[0][2] = numpy.sin(pitch)
+        ry[1][1] = 1.0
+        ry[2][0] = -numpy.sin(pitch)
+        ry[2][2] = numpy.cos(pitch)
+
+        rz = numpy.zeros((3, 3))
+        rz[0][0] = numpy.cos(roll)
+        rz[0][1] = -numpy.sin(roll)
+        rz[1][0] = numpy.sin(roll)
+        rz[1][1] = numpy.cos(roll)
+        rz[2][2] = 1.0
+
+        result = numpy.matmul(numpy.matmul(rz, ry), rx)
+
+        return result
+
+    def _rnd(self, min, max):
+        return numpy.random.rand()*(max - min) + min
 
 
 if __name__ == "__main__":
